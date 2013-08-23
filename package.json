@@ -1,0 +1,47 @@
+{
+  "name": "grunt-encoding",
+  "description": "Check character encoding of files.",
+  "version": "0.1.0",
+  "homepage": "https://github.com/pigulla/grunt-encoding",
+  "author": {
+    "name": "Raphael Pigulla",
+    "email": "pigulla@four66.com",
+    "url": "http://www.n3rd.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pigulla/grunt-encoding.git"
+  },
+  "bugs": {
+    "url": "https://github.com/pigulla/grunt-encoding/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/pigulla/grunt-encoding/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "Gruntfile.js",
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "~0.6.0",
+    "grunt-contrib-clean": "~0.4.0",
+    "grunt-contrib-nodeunit": "~0.2.0",
+    "grunt": "~0.4.1"
+  },
+  "peerDependencies": {
+    "grunt": "~0.4.1"
+  },
+  "keywords": [
+    "gruntplugin"
+  ],
+  "dependencies": {
+    "async": "~0.2.9",
+    "fkt": "~0.1.1"
+  }
+}
