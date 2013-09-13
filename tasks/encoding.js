@@ -121,7 +121,7 @@ module.exports = function (grunt) {
             },
             function (file, cb) {
                 executable = file;
-                grunt.verbose.ok('using executable "' + executable + '"');
+                grunt.verbose.ok('Using executable "' + executable + '"');
                 getIconvVersion(executable, cb);
             },
             function (version, cb) {
