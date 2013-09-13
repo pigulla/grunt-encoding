@@ -1,6 +1,6 @@
 {
   "name": "grunt-encoding",
-  "description": "Check character encoding of files.",
+  "description": "Check character encoding of files using iconv.",
   "version": "0.1.0",
   "homepage": "https://github.com/pigulla/grunt-encoding",
   "author": {
@@ -38,7 +38,7 @@
     "grunt": "~0.4.1"
   },
   "keywords": [
-    "gruntplugin"
+    "gruntplugin", "encoding", "iconv"
   ],
   "dependencies": {
     "async": "~0.2.9",
