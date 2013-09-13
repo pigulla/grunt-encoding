@@ -1,6 +1,8 @@
 # grunt-encoding
 
-> Check character encoding of files.
+> Check character encoding of files using your local installation of `iconv`.
+
+This plugin may or may not work under Windows (with Cygwin) or Mac OS, feedback is appreciated.
 
 ## Getting Started
 This plugin requires Grunt `~0.4.1`
@@ -37,53 +39,33 @@ grunt.initConfig({
 
 ### Options
 
-#### options.separator
+#### options.encoding
 Type: `String`
-Default value: `',  '`
+Default value: `"UTF8"`
 
-A string value that is used to do something with whatever.
+The encoding against which the files will be validated. Keep in mind that this value must be understood by iconv, so `utf8` (in lowercase) is not going to work. To get a list of all available encodings use `iconv --list`.
 
-#### options.punctuation
+#### options.iconv
 Type: `String`
-Default value: `'.'`
+Default value: `null`
 
-A string value that is used to do something else with whatever else.
+If provided, use this iconv executable rather than whatever `which iconv` returns.
 
 ### Usage Examples
-
-#### Default Options
-In this example, the default options are used to do something with whatever. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result would be `Testing, 1 2 3.`
-
-```js
-grunt.initConfig({
-  encoding: {
-    options: {},
-    files: {
-      'dest/default_options': ['src/testing', 'src/123'],
-    },
-  },
-})
-```
-
-#### Custom Options
-In this example, custom options are used to do something else with whatever else. So if the `testing` file has the content `Testing` and the `123` file had the content `1 2 3`, the generated result in this case would be `Testing: 1 2 3 !!!`
 
 ```js
 grunt.initConfig({
   encoding: {
     options: {
-      separator: ': ',
-      punctuation: ' !!!',
+      encoding: 'UTF8'
     },
     files: {
-      'dest/default_options': ['src/testing', 'src/123'],
+      src: ['src/**/*'],
     },
   },
 })
 ```
 
-## Contributing
-In lieu of a formal styleguide, take care to maintain the existing coding style. Add unit tests for any new or changed functionality. Lint and test your code using [Grunt](http://gruntjs.com/).
 
 ## Release History
-_(Nothing yet)_
+0.1.0 (2013/09/13) Initial release

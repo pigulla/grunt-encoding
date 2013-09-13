@@ -9,15 +9,15 @@
 
 var spawn = require('child_process').spawn,
     async = require('async'),
-    fkt = require('fkt'),
     util = require('util'),
-    path = require('path');
+    path = require('path'),
+    which = require('which');
 
-function getIconvVersion(callback) {
-    var iconv = spawn('iconv', ['--version']),
-        error,
+function execIconv(executable, args, callback) {
+    var iconv = spawn(executable, args),
         stderr = '',
-        stdout = '';
+        stdout = '',
+        error;
 
     iconv.stdout.on('data', function (data) {
         stdout += data.toString();
@@ -29,84 +29,63 @@ function getIconvVersion(callback) {
         error = err;
     });
     iconv.on('close', function (code) {
-        if (code === 0) {
-            var matches = stdout.match(/^iconv (?:.+?) (\d+\.\d+(?:\.\d+)?)$/m);
-            if (matches) {
-                callback(null, matches[1]);
-            } else {
-                callback(null, '<unknown>');
-            }
-        } else if (error) {
-            callback(new Error('could not spawn iconv (' + error.message + ')'));
+        if (!error) {
+            callback(null, code, stdout, stderr);
         } else {
-            callback(new Error('iconv failed with exit code ' + code));
-        }
-    });}
-
-function getSupportedEncodings(callback) {
-    var iconv = spawn('iconv', ['--list']),
-        error,
-        stderr = '',
-        stdout = '';
-
-    iconv.stdout.on('data', function (data) {
-        stdout += data.toString();
-    });
-    iconv.stderr.on('data', function (data) {
-        stderr += data.toString();
-    });
-    iconv.on('error', function (err) {
-        error = err;
-    });
-    iconv.on('close', function (code) {
-        if (code === 0) {
-            callback(null, stdout.trim().split("\n"));
-        } else if (error) {
             callback(new Error('could not spawn iconv (' + error.message + ')'));
-        } else {
-            callback(new Error('iconv failed with exit code ' + code));
         }
     });
 }
 
-function assertEncodingSupported(encoding, callback) {
-    getSupportedEncodings(function (err, encodings) {
+function getIconvVersion(executable, callback) {
+    execIconv(executable, ['--version'], function (err, code, stdout) {
+        if (err) {
+            callback(err);
+        } else if (code !== 0) {
+            callback(new Error('iconv exited with code ' + code));
+        } else {
+            var matches = stdout.match(/^iconv (?:.+?) (\d+\.\d+(?:\.\d+)?)$/m);
+            callback(null, matches ? matches[1] : '<unknown>');
+        }
+    });
+}
+
+function getSupportedEncodings(executable, callback) {
+    execIconv(executable, ['--list'], function (err, code, stdout) {
+        if (err) {
+            callback(err);
+        } else if (code !== 0) {
+            callback(new Error('iconv exited with code ' + code));
+        } else {
+            callback(null, stdout.trim().split("\n"));
+        }
+    });
+}
+
+function assertEncodingSupport(executable, encoding, callback) {
+    getSupportedEncodings(executable, function (err, encodings) {
         if (err) {
             callback(err);
             return;
         }
 
         if (encodings.indexOf(encoding) < 0 && encodings.indexOf(encoding + '//') < 0) {
-            callback(new Error(util.format(
-                'iconv does not support encoding "%s"',
-                encoding)
-            ));
+            callback(new Error('iconv does not support encoding "' + encoding + '"'));
         } else {
             callback();
         }
     });
 }
 
-function runIconv(file, encoding, callback) {
-    var iconv = spawn('iconv', ['--from-code', encoding, file]),
-        error,
-        stderr = '';
-
-    iconv.stdout.on('data', fkt.noop);
-    iconv.stderr.on('data', function (data) {
-        stderr += data.toString();
-    });
-    iconv.on('error', function (err) {
-        error = err;
-    });
-    iconv.on('close', function (code) {
-        if (code === 0) {
-            callback(null, true);
-        } else if (error) {
+function runIconv(executable, file, encoding, callback) {
+    execIconv(executable, ['--from-code', encoding, file], function (err, code, stdout, stderr) {
+        if (err) {
             callback(new Error('could not check encoding with iconv (' + error.message + ')'));
+        } else if (code === 0) {
+            callback(null, true);
         } else {
             var messages = stderr.trim().split('\n').map(function (message) {
-                var msg = message.match(/^iconv: (.*)/);
+                var msg = message.match(/^[^:]+: (.+)$/);
                 return msg ? msg[1] : message;
             });
             callback(null, false, messages);
@@ -120,17 +99,34 @@ module.exports = function (grunt) {
             self = this;
 
         // Merge task-specific and/or target-specific options with these defaults.
-        var options = this.options({
-                encoding: 'UTF8'
+        var executable,
+            options = this.options({
+                encoding: 'UTF8',
+                iconv: null
             });
 
         async.waterfall([
             function (cb) {
-                getIconvVersion(cb);
+                if (options.iconv === null) {
+                    which('iconv', cb);
+                } else {
+                    if (grunt.file.exists(options.iconv) &&
+                        (grunt.file.isFile(options.iconv) || grunt.file.isLink(options.iconv))
+                    ) {
+                        cb(null, options.iconv);
+                    } else {
+                        cb(new Error('iconv executable "' + options.iconv + '" not found'));
+                    }
+                }
+            },
+            function (file, cb) {
+                executable = file;
+                grunt.verbose.ok('using executable "' + executable + '"');
+                getIconvVersion(executable, cb);
             },
             function (version, cb) {
                 grunt.verbose.ok('iconv found (version ' + version + ')');
-                assertEncodingSupported(options.encoding, cb);
+                assertEncodingSupport(executable, options.encoding, cb);
             },
             function (cb) {
                 var errors = 0,
@@ -139,7 +135,7 @@ module.exports = function (grunt) {
                     });
 
                 async.eachLimit(files, 5, function (file, cb) {
-                    runIconv(file, options.encoding, function (err, ok, messages) {
+                    runIconv(executable, file, options.encoding, function (err, ok, messages) {
                         if (err) {
                             cb(err);
                         } else if (ok) {
@@ -170,6 +166,5 @@ module.exports = function (grunt) {
             }
             done();
         });
-
     });
 };

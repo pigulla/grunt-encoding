@@ -28,29 +28,32 @@ module.exports = function(grunt) {
       tests: ['tmp']
     },
 
-    // Configuration to be run (and then tested).
+    // Example configuration
     encoding: {
-      default_options: {
+      invalid_executable: {
+          options: {
+              iconv: 'foo'
+          },
+          files: {
+              src: ['test/fixtures/ansi.txt', 'test/fixtures/simple.txt', 'test/fixtures/utf8.txt', 'test/fixtures/ucs2-be.txt']
+          }
+      },
+      will_fail: {
         options: {
             encoding: 'UTF8'
         },
         files: {
-          src: ['test/fixtures/ansi.txt', 'test/fixtures/utf8.txt', 'test/fixtures/ucs2-be.txt']
+          src: ['test/fixtures/ansi.txt', 'test/fixtures/simple.txt', 'test/fixtures/utf8.txt', 'test/fixtures/ucs2-be.txt']
         }
       },
-      custom_options: {
+      will_pass: {
         options: {
           charset: 'utf8'
         },
         files: {
-            src: ['test/fixtures/ansi.txt', 'test/fixtures/utf8.txt', 'test/fixtures/ucs2-be.txt']
+            src: ['test/fixtures/simple.txt', 'test/fixtures/utf8.txt']
         }
       }
-    },
-
-    // Unit tests.
-    nodeunit: {
-      tests: ['test/*_test.js']
     }
   });
 
@@ -60,13 +63,4 @@ module.exports = function(grunt) {
   // These plugins provide necessary tasks.
   grunt.loadNpmTasks('grunt-contrib-jshint');
   grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-nodeunit');
-
-  // Whenever the "test" task is run, first clean the "tmp" dir, then run this
-  // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'encoding', 'nodeunit']);
-
-  // By default, lint and run all tests.
-  grunt.registerTask('default', ['jshint', 'test']);
-
 };
