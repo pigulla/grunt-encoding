@@ -2,7 +2,7 @@
  * grunt-encoding
  * https://github.com/pigulla/grunt-encoding
  *
- * Copyright (c) 2013 Raphael Pigulla
+ * Copyright (c) 2013-2014 Raphael Pigulla <pigulla@four66.com>
  * Licensed under the MIT license.
  */
 'use strict';
@@ -80,7 +80,7 @@ function assertEncodingSupport(executable, encoding, linefeed, callback) {
 function runIconv(executable, file, encoding, callback) {
     execIconv(executable, ['--from-code', encoding, file], function (err, code, stdout, stderr) {
         if (err) {
-            callback(new Error('could not check encoding with iconv (' + error.message + ')'));
+            callback(new Error('could not check encoding with iconv (' + err.message + ')'));
         } else if (code === 0) {
             callback(null, true);
         } else {
@@ -160,7 +160,7 @@ module.exports = function (grunt) {
             if (err) {
                 grunt.fail.warn(err.message);
             } else if (errors) {
-                grunt.fail.warn(errors + ' files are not encoded correctly')
+                grunt.fail.warn(errors + ' files are not encoded correctly');
             } else {
                 grunt.log.ok('All files are encoded correctly');
             }
