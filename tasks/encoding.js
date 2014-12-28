@@ -50,20 +50,20 @@ function getIconvVersion(executable, callback) {
     });
 }
 
-function getSupportedEncodings(executable, callback) {
+function getSupportedEncodings(executable, linefeed, callback) {
     execIconv(executable, ['--list'], function (err, code, stdout) {
         if (err) {
             callback(err);
         } else if (code !== 0) {
             callback(new Error('iconv exited with code ' + code));
         } else {
-            callback(null, stdout.trim().split("\n"));
+            callback(null, stdout.trim().split(linefeed));
         }
     });
 }
 
-function assertEncodingSupport(executable, encoding, callback) {
-    getSupportedEncodings(executable, function (err, encodings) {
+function assertEncodingSupport(executable, encoding, linefeed, callback) {
+    getSupportedEncodings(executable, linefeed, function (err, encodings) {
         if (err) {
             callback(err);
             return;
@@ -126,7 +126,7 @@ module.exports = function (grunt) {
             },
             function (version, cb) {
                 grunt.verbose.ok('iconv found (version ' + version + ')');
-                assertEncodingSupport(executable, options.encoding, cb);
+                assertEncodingSupport(executable, options.encoding, grunt.util.linefeed, cb);
             },
             function (cb) {
                 var errors = 0,
