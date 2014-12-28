@@ -44,7 +44,7 @@ function getIconvVersion(executable, callback) {
         } else if (code !== 0) {
             callback(new Error('iconv exited with code ' + code));
         } else {
-            var matches = stdout.match(/^iconv (?:.+?) (\d+\.\d+(?:\.\d+)?)$/m);
+            var matches = stdout.match(/^iconv (?:.+?) (\d+\.\d+(?:\.\d+)?).*$/m);
             callback(null, matches ? matches[1] : '<unknown>');
         }
     });
