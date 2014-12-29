@@ -68,5 +68,6 @@ grunt.initConfig({
 
 
 ## Release History
+0.2.1 (2015/01/??) Maintenance release  
 0.2.0 (2014/12/28) Fix issues with Windows line feeds and iconv version detection  
 0.1.0 (2013/09/13) Initial release

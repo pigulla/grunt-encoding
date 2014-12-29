@@ -26,6 +26,15 @@ module.exports = function (grunt) {
             tests: ['tmp']
         },
 
+        mochaTest: {
+            test: {
+                options: {
+                    reporter: 'spec'
+                },
+                src: ['test/tests/**/*.js']
+            }
+        },
+
         // Example configuration
         encoding: {
             'invalid_executable': {
@@ -34,10 +43,10 @@ module.exports = function (grunt) {
                 },
                 files: {
                     src: [
-                        'test/fixtures/ansi.txt',
-                        'test/fixtures/simple.txt',
-                        'test/fixtures/utf8.txt',
-                        'test/fixtures/ucs2-be.txt'
+                        'test/fixtures/text/ansi.txt',
+                        'test/fixtures/text/simple.txt',
+                        'test/fixtures/text/utf8.txt',
+                        'test/fixtures/text/ucs2-be.txt'
                     ]
                 }
             },
@@ -47,10 +56,10 @@ module.exports = function (grunt) {
                 },
                 files: {
                     src: [
-                        'test/fixtures/ansi.txt',
-                        'test/fixtures/simple.txt',
-                        'test/fixtures/utf8.txt',
-                        'test/fixtures/ucs2-be.txt'
+                        'test/fixtures/text/ansi.txt',
+                        'test/fixtures/text/simple.txt',
+                        'test/fixtures/text/utf8.txt',
+                        'test/fixtures/text/ucs2-be.txt'
                     ]
                 }
             },
@@ -60,8 +69,8 @@ module.exports = function (grunt) {
                 },
                 files: {
                     src: [
-                        'test/fixtures/simple.txt',
-                        'test/fixtures/utf8.txt'
+                        'test/fixtures/text/simple.txt',
+                        'test/fixtures/text/utf8.txt'
                     ]
                 }
             }
@@ -72,4 +81,5 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-mocha-test');
 };

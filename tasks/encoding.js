@@ -2,96 +2,17 @@
  * grunt-encoding
  * https://github.com/pigulla/grunt-encoding
  *
- * Copyright (c) 2013-2014 Raphael Pigulla <pigulla@four66.com>
+ * Copyright (c) 2013-2015 Raphael Pigulla <pigulla@four66.com>
  * Licensed under the MIT license.
  */
 'use strict';
 
-var spawn = require('child_process').spawn,
-    async = require('async'),
-    util = require('util'),
-    path = require('path'),
+var util = require('util');
+
+var async = require('async'),
     which = require('which');
 
-function execIconv(executable, args, callback) {
-    var iconv = spawn(executable, args),
-        stderr = '',
-        stdout = '',
-        error;
-
-    iconv.stdout.on('data', function (data) {
-        stdout += data.toString();
-    });
-    iconv.stderr.on('data', function (data) {
-        stderr += data.toString();
-    });
-    iconv.on('error', function (err) {
-        error = err;
-    });
-    iconv.on('close', function (code) {
-        if (!error) {
-            callback(null, code, stdout, stderr);
-        } else {
-            callback(new Error('could not spawn iconv (' + error.message + ')'));
-        }
-    });
-}
-
-function getIconvVersion(executable, callback) {
-    execIconv(executable, ['--version'], function (err, code, stdout) {
-        if (err) {
-            callback(err);
-        } else if (code !== 0) {
-            callback(new Error('iconv exited with code ' + code));
-        } else {
-            var matches = stdout.match(/^iconv (?:.+?) (\d+\.\d+(?:\.\d+)?).*$/m);
-            callback(null, matches ? matches[1] : '<unknown>');
-        }
-    });
-}
-
-function getSupportedEncodings(executable, linefeed, callback) {
-    execIconv(executable, ['--list'], function (err, code, stdout) {
-        if (err) {
-            callback(err);
-        } else if (code !== 0) {
-            callback(new Error('iconv exited with code ' + code));
-        } else {
-            callback(null, stdout.trim().split(linefeed));
-        }
-    });
-}
-
-function assertEncodingSupport(executable, encoding, linefeed, callback) {
-    getSupportedEncodings(executable, linefeed, function (err, encodings) {
-        if (err) {
-            callback(err);
-            return;
-        }
-
-        if (encodings.indexOf(encoding) < 0 && encodings.indexOf(encoding + '//') < 0) {
-            callback(new Error('iconv does not support encoding "' + encoding + '"'));
-        } else {
-            callback();
-        }
-    });
-}
-
-function runIconv(executable, file, encoding, callback) {
-    execIconv(executable, ['--from-code', encoding, file], function (err, code, stdout, stderr) {
-        if (err) {
-            callback(new Error('could not check encoding with iconv (' + err.message + ')'));
-        } else if (code === 0) {
-            callback(null, true);
-        } else {
-            var messages = stderr.trim().split('\n').map(function (message) {
-                var msg = message.match(/^[^:]+: (.+)$/);
-                return msg ? msg[1] : message;
-            });
-            callback(null, false, messages);
-        }
-    });
-}
+var iconvWrapper = require('./iconv-wrapper');
 
 module.exports = function (grunt) {
     grunt.registerMultiTask('encoding', 'Check character encoding of files.', function () {
@@ -121,12 +42,13 @@ module.exports = function (grunt) {
             },
             function (file, cb) {
                 executable = file;
-                grunt.verbose.ok('Using executable "' + executable + '"');
-                getIconvVersion(executable, cb);
+                grunt.verbose.ok('Using' +
+                ' executable "' + executable + '"');
+                iconvWrapper.getVersion(executable, cb);
             },
             function (version, cb) {
                 grunt.verbose.ok('iconv found (version ' + version + ')');
-                assertEncodingSupport(executable, options.encoding, grunt.util.linefeed, cb);
+                iconvWrapper.assertEncodingSupport(executable, options.encoding, grunt.util.linefeed, cb);
             },
             function (cb) {
                 var errors = 0,
@@ -135,7 +57,7 @@ module.exports = function (grunt) {
                     });
 
                 async.eachLimit(files, 5, function (file, cb) {
-                    runIconv(executable, file, options.encoding, function (err, ok, messages) {
+                    iconvWrapper.run(executable, file, options.encoding, function (err, ok, messages) {
                         if (err) {
                             cb(err);
                         } else if (ok) {
@@ -156,7 +78,7 @@ module.exports = function (grunt) {
                     cb(err, errors);
                 });
             }
-        ], function (err, errors) {
+        ], function (err , errors) {
             if (err) {
                 grunt.fail.warn(err.message);
             } else if (errors) {
