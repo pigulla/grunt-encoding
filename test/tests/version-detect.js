@@ -24,4 +24,22 @@ describe('version detection', function () {
             done();
         });
     });
+
+    it('on Windows', function (done) {
+        var fixture = path.join(__dirname, '..', 'fixtures', 'iconv-version.windows'),
+            output = fs.readFileSync(fixture).toString(),
+            revert;
+
+        revert = iconvWrapper.__set__('exec', function (executable, args, callback) {
+            callback(null, 0, output, '');
+        });
+
+        iconvWrapper.getVersion('iconv', function (error, version) {
+            assert.equal(error, null);
+            assert.equal(version, '1.14');
+
+            revert();
+            done();
+        });
+    });
 });
