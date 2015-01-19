@@ -1,7 +1,7 @@
 {
   "name": "grunt-encoding",
   "description": "Check character encoding of files using iconv.",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "homepage": "https://github.com/pigulla/grunt-encoding",
   "author": {
     "name": "Raphael Pigulla",

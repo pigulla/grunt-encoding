@@ -37,7 +37,7 @@ module.exports = function (grunt) {
 
         // Example configuration
         encoding: {
-            'invalid_executable': {
+            'abort_invalid_executable': {
                 options: {
                     iconv: 'foo'
                 },
@@ -50,7 +50,20 @@ module.exports = function (grunt) {
                     ]
                 }
             },
-            'will_fail': {
+            'abort_unknown_encoding': {
+                options: {
+                    encoding: 'klingon'
+                },
+                files: {
+                    src: [
+                        'test/fixtures/text/ansi.txt',
+                        'test/fixtures/text/simple.txt',
+                        'test/fixtures/text/utf8.txt',
+                        'test/fixtures/text/ucs2-be.txt'
+                    ]
+                }
+            },
+            'fail_incorrect_encodings': {
                 options: {
                     encoding: 'UTF8'
                 },
@@ -63,7 +76,7 @@ module.exports = function (grunt) {
                     ]
                 }
             },
-            'will_pass': {
+            'pass': {
                 options: {
                     charset: 'utf8'
                 },

@@ -1,30 +1,34 @@
 'use strict';
 
 var path = require('path'),
-    spawn = require('child_process').spawn;
+    spawn = require('child_process').spawn,
+    util = require('util');
 
 function exec(executable, args, callback) {
-    var iconv = spawn(executable, args),
+    var process = spawn(executable, args),
         stderr = '',
         stdout = '',
         error;
 
-    iconv.stdout.on('data', function (data) {
+    process.stdout.on('data', function (data) {
         stdout += data.toString();
     });
-    iconv.stderr.on('data', function (data) {
+    process.stderr.on('data', function (data) {
         stderr += data.toString();
     });
-    iconv.on('error', function (err) {
+    process.on('error', function (err) {
         error = err;
     });
-    iconv.on('close', function (code) {
+    process.on('close', function (code) {
         if (!error) {
             callback(null, code, stdout, stderr);
         } else {
-            callback(new Error('could not spawn iconv (' + error.message + ')'));
+            var message = util.format('could not spawn "%s" ("%s")', executable, error.message);
+            callback(new Error(message));
         }
     });
+
+    return process;
 }
 
 function getVersion(executable, callback) {
@@ -40,34 +44,26 @@ function getVersion(executable, callback) {
     });
 }
 
-function getSupportedEncodings(executable, linefeed, callback) {
-    exec(executable, ['--list'], function (err, code, stdout) {
-        if (err) {
-            callback(err);
+function assertEncodingSupport(executable, encoding, callback) {
+    if (!encoding) {
+        callback(new Error('no encoding specified'));
+        return;
+    }
+    
+    var process = exec(executable, ['--from-code', encoding], function (error, code) {
+        if (error) {
+            callback(error);
         } else if (code !== 0) {
-            callback(new Error('iconv exited with code ' + code));
-        } else {
-            callback(null, stdout.trim().split(linefeed));
-        }
-    });
-}
-
-function assertEncodingSupport(executable, encoding, linefeed, callback) {
-    getSupportedEncodings(executable, linefeed, function (err, encodings) {
-        if (err) {
-            callback(err);
-            return;
-        }
-
-        if (encodings.indexOf(encoding) < 0 && encodings.indexOf(encoding + '//') < 0) {
             callback(new Error('iconv does not support encoding "' + encoding + '"'));
         } else {
             callback();
         }
     });
+
+    process.stdin.end('');
 }
 
-function run(executable, file, encoding, callback) {
+function check(executable, file, encoding, callback) {
     exec(executable, ['--from-code', encoding, file], function (err, code, stdout, stderr) {
         if (err) {
             callback(new Error('could not check encoding with iconv (' + err.message + ')'));
@@ -86,7 +82,6 @@ function run(executable, file, encoding, callback) {
 module.exports = {
     exec: exec,
     getVersion: getVersion,
-    getSupportedEncodings: getSupportedEncodings,
     assertEncodingSupport: assertEncodingSupport,
-    run: run
+    check: check
 };

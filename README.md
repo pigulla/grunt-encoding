@@ -43,7 +43,7 @@ grunt.initConfig({
 Type: `String`
 Default value: `"UTF8"`
 
-The encoding against which the files will be validated. Keep in mind that this value must be understood by iconv, so `utf8` (in lowercase) is not going to work. To get a list of all available encodings use `iconv --list`.
+The encoding against which the files will be validated. Keep in mind that this value must be understood by iconv and is case sensitive. To get a list of all available encodings use `iconv --list`.
 
 #### options.iconv
 Type: `String`
@@ -68,6 +68,6 @@ grunt.initConfig({
 
 
 ## Release History
-0.2.1 (2015/01/??) Maintenance release  
+0.3.0 (2015/01/19) Made encoding support detection more robust and updated dependencies  
 0.2.0 (2014/12/28) Fix issues with Windows line feeds and iconv version detection  
 0.1.0 (2013/09/13) Initial release

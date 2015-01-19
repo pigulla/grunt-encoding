@@ -42,48 +42,44 @@ module.exports = function (grunt) {
             },
             function (file, cb) {
                 executable = file;
-                grunt.verbose.ok('Using' +
-                ' executable "' + executable + '"');
+                grunt.verbose.ok('Using' + ' executable "' + executable + '"');
                 iconvWrapper.getVersion(executable, cb);
             },
             function (version, cb) {
-                grunt.verbose.ok('iconv found (version ' + version + ')');
-                iconvWrapper.assertEncodingSupport(executable, options.encoding, grunt.util.linefeed, cb);
+                grunt.verbose.ok('iconv version ' + version + ' detected');
+                iconvWrapper.assertEncodingSupport(executable, options.encoding, cb);
             },
             function (cb) {
-                var errors = 0,
+                var filesWithErrors = [],
                     files = self.filesSrc.filter(function (file) {
                         return grunt.file.isFile(file);
                     });
 
                 async.eachLimit(files, 5, function (file, cb) {
-                    iconvWrapper.run(executable, file, options.encoding, function (err, ok, messages) {
+                    iconvWrapper.check(executable, file, options.encoding, function (err, ok, problems) {
                         if (err) {
                             cb(err);
                         } else if (ok) {
-                            grunt.verbose.ok(util.format('File ok: %s', file));
+                            grunt.verbose.ok(util.format('File OK: %s', file));
                             cb();
                         } else {
-                            errors++;
-                            messages.forEach(function (message) {
-                                grunt.verbose.warn(util.format(
-                                    'Problem with file %s: %s',
-                                    file, message
-                                ));
+                            filesWithErrors.push(file);
+                            grunt.fail.warn(util.format(
+                                'File %s is not encoded correctly as %s', file, options.encoding));
+                            problems.forEach(function (message) {
+                                grunt.verbose.warn(message);
                             });
                             cb();
                         }
                     });
                 }, function (err) {
-                    cb(err, errors);
+                    cb(err, filesWithErrors);
                 });
             }
-        ], function (err , errors) {
+        ], function (err, filesWithErrors) {
             if (err) {
-                grunt.fail.warn(err.message);
-            } else if (errors) {
-                grunt.fail.warn(errors + ' files are not encoded correctly');
-            } else {
+                grunt.fail.fatal(err.message);
+            } else if (filesWithErrors.length === 0) {
                 grunt.log.ok('All files are encoded correctly');
             }
             done();
