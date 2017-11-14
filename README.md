@@ -1,3 +1,5 @@
+![no maintenance intended](https://img.shields.io/badge/%E2%A8%89-no%20maintenance%20intended-red.svg?style=flat-square)
+
 # grunt-encoding
 
 > Check character encoding of files using your local installation of `iconv`.
